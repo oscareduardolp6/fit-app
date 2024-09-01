@@ -17,7 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AutoCompleteInput(datalist: List<String>) {
+fun AutoCompleteInput(datalist: List<String>, limit: Int = 3) {
     var expanded by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
 
@@ -41,6 +41,7 @@ fun AutoCompleteInput(datalist: List<String>) {
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             datalist
                 .filter { option -> option.contains(query) }
+                .take(limit)
                 .forEach { selectedOption ->
                 DropdownMenuItem(
                     text = { Text(selectedOption) },
