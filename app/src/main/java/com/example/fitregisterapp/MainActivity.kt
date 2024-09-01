@@ -1,33 +1,22 @@
 package com.example.fitregisterapp
 
-import android.app.Activity
-import android.content.Context
+import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,19 +25,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.PopupProperties
 import androidx.documentfile.provider.DocumentFile
 import com.example.fitregisterapp.ui.components.AutoCompleteInput
+import com.example.fitregisterapp.ui.share.DirectoryPicker
 import com.example.fitregisterapp.ui.theme.FitRegisterAppTheme
 
 class MainActivity : ComponentActivity() {
 
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             FitRegisterAppTheme {
-                Scaffold { paddingValues ->
+                Scaffold { _ ->
                     App()
                 }
             }
@@ -72,13 +62,25 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun App() {
-    var fileNames by remember { mutableStateOf(listOf("Dominadas Prono", "Lagartijas", "Sentadillas")) }
+    var fileNames by remember { mutableStateOf(emptyList<String>()) }
+    var showDirectoryPicker by remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.padding(horizontal = 100.dp, vertical = 100.dp)) {
-        AutoCompleteInput(datalist = fileNames)
+        Button(onClick = { showDirectoryPicker = true }) {
+            Text("Cargar carpeta de ejercicios")
+        }
+        if(showDirectoryPicker) {
+            DirectoryPicker { files ->
+                fileNames = files
+                    ?.mapNotNull { file -> file.name?.replace(".md", "") }
+                    ?.ifEmpty { listOf("No se ha cargado la carpeta de ejercicios") }
+                    ?: listOf("No se ha cargado la carpeta de ejercicios")
+                showDirectoryPicker = false
+            }
+        }
+        AutoCompleteInput(fileNames)
     }
 }
-
-
 
 @Composable
 fun CustomButton1() {
