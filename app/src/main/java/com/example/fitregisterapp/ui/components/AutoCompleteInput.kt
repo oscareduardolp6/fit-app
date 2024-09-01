@@ -1,5 +1,6 @@
 package com.example.fitregisterapp.ui.components
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,14 +18,14 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AutoCompleteInput(datalist: List<String>, limit: Int = 3) {
+fun AutoCompleteInput(datalist: List<String>, modifier: Modifier = Modifier, limit: Int = 3 ) {
     var expanded by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier
     ) {
         OutlinedTextField(
             value = query,
