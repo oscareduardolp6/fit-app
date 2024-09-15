@@ -18,7 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AutoCompleteInput(datalist: List<String>, modifier: Modifier = Modifier, limit: Int = 3 ) {
+fun AutoCompleteInput(datalist: List<String>, onChange: (String) -> Unit,  modifier: Modifier = Modifier, limit: Int = 3) {
     var expanded by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
 
@@ -49,6 +49,7 @@ fun AutoCompleteInput(datalist: List<String>, modifier: Modifier = Modifier, lim
                     onClick = {
                         query = selectedOption
                         expanded = false
+                        onChange(query)
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding)
             }
@@ -61,5 +62,5 @@ fun AutoCompleteInput(datalist: List<String>, modifier: Modifier = Modifier, lim
 @Composable
 fun AutoCompleteInputPreview(){
     val testList = listOf("Dominadas Prono", "Lagartijas", "Sentadillas")
-    AutoCompleteInput(datalist = testList)
+    AutoCompleteInput(datalist = testList, onChange = { })
 }

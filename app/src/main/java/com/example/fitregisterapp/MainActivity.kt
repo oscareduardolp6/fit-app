@@ -28,6 +28,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.fitregisterapp.ui.components.AutoCompleteInput
+import com.example.fitregisterapp.ui.components.SimpleInput
+import com.example.fitregisterapp.ui.components.UnilateralInput
 import com.example.fitregisterapp.ui.share.DirectoryPicker
 import com.example.fitregisterapp.ui.theme.FitRegisterAppTheme
 
@@ -50,9 +52,15 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun App(paddingValues: PaddingValues) {
     var fileNames by remember { mutableStateOf(emptyList<String>()) }
+    var exerciseName by remember { mutableStateOf("") }
     var showDirectoryPicker by remember { mutableStateOf(false) }
     var variation by remember { mutableStateOf("") }
     var isUnilateral by remember { mutableStateOf(false) }
+    var unilateralReps by remember { mutableStateOf(Pair(0, 0)) }
+    var normalReps by remember { mutableStateOf(0) }
+    val inputModifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)
 
     Column(
         modifier = Modifier
@@ -78,15 +86,14 @@ fun App(paddingValues: PaddingValues) {
         }
         AutoCompleteInput(
             datalist = fileNames,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp))
+            onChange = { exerciseName = it },
+            modifier = inputModifier)
         Spacer(modifier = Modifier.size(15.dp))
         OutlinedTextField(
             value = variation ,
             onValueChange = { variation = it},
             label = { Text("Variación")},
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            modifier = inputModifier,
             colors = ExposedDropdownMenuDefaults.textFieldColors()
         )
         Spacer(modifier = Modifier.size(15.dp))
@@ -96,6 +103,10 @@ fun App(paddingValues: PaddingValues) {
                 onCheckedChange = { isUnilateral = it })
             Text("Unilateral", modifier = Modifier.align(Alignment.CenterVertically))
         }
-        
+        Spacer(modifier = Modifier.size(15.dp))
+        if(exerciseName.isNotEmpty() && variation.isNotEmpty()) {
+            if(isUnilateral) UnilateralInput { unilateralReps = it }
+            else SimpleInput { normalReps = it }
+        }
     }
 }
