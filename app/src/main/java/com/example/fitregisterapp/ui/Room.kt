@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Database
+import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Query
@@ -25,6 +26,10 @@ interface FileNameDao {
 
     @Query("SELECT * FROM filename")
     suspend fun getAllFileNames(): List<FileName>
+
+    @Query("DELETE FROM filename")
+    suspend fun deleteAll()
+
 }
 
 @Database(entities = [FileName::class], version = 1)

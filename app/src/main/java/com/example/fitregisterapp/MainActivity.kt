@@ -70,10 +70,11 @@ fun App(paddingValues: PaddingValues) {
         .fillMaxWidth()
         .padding(horizontal = 16.dp)
     val database = FileNameDatabase.getDatabase(LocalContext.current)
+    val fileNameTable = database.fileNameDao();
 
     LaunchedEffect(Unit) {
         CoroutineScope(Dispatchers.IO).launch {
-            val savedFileNames = database.fileNameDao().getAllFileNames()
+            val savedFileNames = fileNameTable.getAllFileNames()
             withContext(Dispatchers.Main) {
                 fileNames = savedFileNames.map { it.name }
             }
@@ -99,13 +100,12 @@ fun App(paddingValues: PaddingValues) {
                     ?.mapNotNull { file -> file.name?.replace(".md", "") }
                     ?.ifEmpty { listOf("No se ha cargado la carpeta de ejercicios") }
                     ?: listOf("No se ha cargado la carpeta de ejercicios")
-                fileNames
-                    .map { FileName(it) }
-                    .forEach { fileName ->
-                        CoroutineScope(Dispatchers.IO).launch {
-                            database.fileNameDao().upsertFileName(fileName)
-                        }
-                    }
+                CoroutineScope(Dispatchers.IO).launch {
+                    fileNameTable.deleteAll()
+                    fileNames
+                        .map { FileName(it) }
+                        .forEach { fileNameTable.upsertFileName(it) }
+                }
                 showDirectoryPicker = false
             }
         }
