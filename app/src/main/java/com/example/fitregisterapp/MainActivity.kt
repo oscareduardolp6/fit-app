@@ -20,18 +20,26 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.fitregisterapp.ui.FileName
+import com.example.fitregisterapp.ui.FileNameDatabase
 import com.example.fitregisterapp.ui.components.AutoCompleteInput
 import com.example.fitregisterapp.ui.components.SimpleInput
 import com.example.fitregisterapp.ui.components.UnilateralInput
 import com.example.fitregisterapp.ui.share.DirectoryPicker
 import com.example.fitregisterapp.ui.theme.FitRegisterAppTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
 
@@ -61,6 +69,16 @@ fun App(paddingValues: PaddingValues) {
     val inputModifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 16.dp)
+    val database = FileNameDatabase.getDatabase(LocalContext.current)
+
+    LaunchedEffect(Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val savedFileNames = database.fileNameDao().getAllFileNames()
+            withContext(Dispatchers.Main) {
+                fileNames = savedFileNames.map { it.name }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -81,6 +99,13 @@ fun App(paddingValues: PaddingValues) {
                     ?.mapNotNull { file -> file.name?.replace(".md", "") }
                     ?.ifEmpty { listOf("No se ha cargado la carpeta de ejercicios") }
                     ?: listOf("No se ha cargado la carpeta de ejercicios")
+                fileNames
+                    .map { FileName(it) }
+                    .forEach { fileName ->
+                        CoroutineScope(Dispatchers.IO).launch {
+                            database.fileNameDao().upsertFileName(fileName)
+                        }
+                    }
                 showDirectoryPicker = false
             }
         }
