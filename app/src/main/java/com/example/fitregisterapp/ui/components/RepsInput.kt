@@ -49,9 +49,10 @@ fun UnilateralInput(onChange: (Pair<Int, Int>) -> Unit) {
 
 @Composable
 fun SimpleInput(onChange: (Int) -> Unit) {
-    NumberInput(
-        onChange = onChange,
-        label = { Text("Repeticiones") },
-        modifier = Modifier
-            .fillMaxWidth(fraction = 0.5f))
+        NumberInput(
+            onChange = onChange,
+            label = { Text("Repeticiones") },
+            modifier = Modifier
+                .padding(horizontal = 50.dp)
+        )
 }
