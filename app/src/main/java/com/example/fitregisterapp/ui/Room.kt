@@ -1,17 +1,17 @@
 package com.example.fitregisterapp.ui
 
 import android.content.Context
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Database
-import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import androidx.room.Upsert
-import kotlinx.coroutines.flow.Flow
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Entity
 data class FileName(
@@ -32,21 +32,51 @@ interface FileNameDao {
 
 }
 
-@Database(entities = [FileName::class], version = 1)
-abstract class FileNameDatabase: RoomDatabase() {
+@Database(entities = [FileName::class, BilateralExercise::class, UnilateralExercise::class], version = 2)
+@TypeConverters(Converters::class)
+abstract class AppDatabase: RoomDatabase() {
     abstract fun fileNameDao(): FileNameDao
+    abstract fun bilateralExerciseDao(): BilateralExerciseDao
+    abstract fun unilateralExerciseDao(): UnilateralExerciseDao
 
     companion object {
-        @Volatile
-        private var INSTANCE: FileNameDatabase? = null
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Agrega la tabla para la nueva entidad UnilateralExercise
+                database.execSQL("""
+            CREATE TABLE IF NOT EXISTS bilateralexercise (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                name TEXT NOT NULL,
+                variation TEXT NOT NULL,
+                reps TEXT NOT NULL,
+                date TEXT NOT NULL
+            );
+        """.trimIndent())
 
-        fun getDatabase(context: Context): FileNameDatabase {
+                database.execSQL("""
+            CREATE TABLE IF NOT EXISTS unilateralexercise (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                name TEXT NOT NULL,
+                variation TEXT NOT NULL,
+                date TEXT NOT NULL,
+                leftReps TEXT NOT NULL,
+                rightReps TEXT NOT NULL
+            );
+        """.trimIndent())
+            }
+        }
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
-                    FileNameDatabase::class.java,
+                    AppDatabase::class.java,
                     "app_database"
-                ).build()
+                )
+                    .addMigrations(MIGRATION_1_2)
+                    .build()
                 INSTANCE = instance
                 instance
             }

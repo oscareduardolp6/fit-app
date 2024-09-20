@@ -30,7 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.fitregisterapp.ui.FileName
-import com.example.fitregisterapp.ui.FileNameDatabase
+import com.example.fitregisterapp.ui.AppDatabase
 import com.example.fitregisterapp.ui.components.AutoCompleteInput
 import com.example.fitregisterapp.ui.components.SimpleInput
 import com.example.fitregisterapp.ui.components.UnilateralInput
@@ -69,7 +69,7 @@ fun App(paddingValues: PaddingValues) {
     val inputModifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 16.dp)
-    val database = FileNameDatabase.getDatabase(LocalContext.current)
+    val database = AppDatabase.getDatabase(LocalContext.current)
     val fileNameTable = database.fileNameDao();
 
     LaunchedEffect(Unit) {
