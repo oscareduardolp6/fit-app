@@ -25,8 +25,11 @@ fun NumberInput(
     OutlinedTextField(
         value = numberText,
         onValueChange = onValueChange@{ newValue ->
-            if(newValue.isNotEmpty() || newValue.matches(Regex("^\\d*\\.?\\d*\$")))
+            if(newValue.isEmpty()) {
+                numberText = ""
                 return@onValueChange
+            }
+            if(!newValue.matches(Regex("^\\d*\\.?\\d*\$"))) return@onValueChange
             numberText = newValue
             onChange(newValue.toIntOrNull() ?: 0)
         },

@@ -1,6 +1,7 @@
 package com.example.fitregisterapp
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -31,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.fitregisterapp.ui.FileName
 import com.example.fitregisterapp.ui.AppDatabase
+import com.example.fitregisterapp.ui.BilateralExerciseSaver
 import com.example.fitregisterapp.ui.components.AutoCompleteInput
 import com.example.fitregisterapp.ui.components.SimpleInput
 import com.example.fitregisterapp.ui.components.UnilateralInput
@@ -71,6 +73,8 @@ fun App(paddingValues: PaddingValues) {
         .padding(horizontal = 16.dp)
     val database = AppDatabase.getDatabase(LocalContext.current)
     val fileNameTable = database.fileNameDao();
+    val bilateralExerciseSaver = BilateralExerciseSaver(database.bilateralExerciseDao())
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -133,5 +137,26 @@ fun App(paddingValues: PaddingValues) {
             if(isUnilateral) UnilateralInput { unilateralReps = it }
             else SimpleInput { normalReps = it }
         }
+
+       if(!isUnilateral) {
+           Button(
+               onClick = {
+                   CoroutineScope(Dispatchers.IO).launch {
+                       bilateralExerciseSaver.save(exerciseName, variation, normalReps)
+                       withContext(Dispatchers.Main) {
+                           exerciseName = ""
+                           variation = ""
+                           normalReps = 0
+                           Toast
+                               .makeText(context, "Ejercicio guardado correctamente", Toast.LENGTH_SHORT)
+                               .show()
+                       }
+                   }
+               }
+           ) {
+               Text("Guardar Ejercicio")
+           }
+       }
+
     }
 }
