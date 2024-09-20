@@ -43,6 +43,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
 
@@ -95,6 +96,7 @@ fun App(paddingValues: PaddingValues) {
             onClick = { showDirectoryPicker = true },
             modifier = Modifier
                 .padding(top = 16.dp, bottom = 24.dp)
+                .fillMaxWidth(1f)
                 .align(Alignment.CenterHorizontally)
         ) {
             Text("Cargar carpeta de ejercicios")
@@ -119,9 +121,30 @@ fun App(paddingValues: PaddingValues) {
             },
             modifier = Modifier
                 .padding(top = 16.dp, bottom = 24.dp)
+                .fillMaxWidth(1f)
                 .align(Alignment.CenterHorizontally)
         ) {
-            Text("Mostrar")
+            Text("Mostrar último dato guardado")
+        }
+        Button(
+            onClick = {
+                CoroutineScope(Dispatchers.IO).launch { 
+                    database
+                        .bilateralExerciseDao()
+                        .deleteExerciseByDate(LocalDate.now())
+                    withContext(Dispatchers.Main) {
+                        Toast
+                            .makeText(context, "Datos de hoy eliminados", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
+            }, 
+            modifier = Modifier
+                .padding(top = 16.dp, bottom = 24.dp)
+                .fillMaxWidth(1f)
+                .align(Alignment.CenterHorizontally)
+        ) {
+            Text("Eliminar datos de hoy")
         }
 
         if(showDirectoryPicker) {
