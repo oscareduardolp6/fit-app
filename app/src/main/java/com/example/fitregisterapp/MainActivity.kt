@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.fitregisterapp.ui.FileName
 import com.example.fitregisterapp.ui.AppDatabase
+import com.example.fitregisterapp.ui.BilateralExercise
 import com.example.fitregisterapp.ui.BilateralExerciseSaver
 import com.example.fitregisterapp.ui.components.AutoCompleteInput
 import com.example.fitregisterapp.ui.components.SimpleInput
@@ -98,6 +99,31 @@ fun App(paddingValues: PaddingValues) {
         ) {
             Text("Cargar carpeta de ejercicios")
         }
+        Button(
+            onClick = {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val testExercise: BilateralExercise? = database
+                        .bilateralExerciseDao()
+                        .getAll()
+                        .getOrNull(0)
+
+                    val message = testExercise?.let { "${it.name} ${it.variation} ${it.reps}" }
+                        ?: "No hay ejercicios registrados"
+
+                    withContext(Dispatchers.Main) {
+                        Toast
+                            .makeText(context, message, Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
+            },
+            modifier = Modifier
+                .padding(top = 16.dp, bottom = 24.dp)
+                .align(Alignment.CenterHorizontally)
+        ) {
+            Text("Mostrar")
+        }
+
         if(showDirectoryPicker) {
             DirectoryPicker { files ->
                 fileNames = files
