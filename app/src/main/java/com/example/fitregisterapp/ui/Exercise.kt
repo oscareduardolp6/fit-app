@@ -52,7 +52,7 @@ interface BilateralExerciseDao {
 @Dao
 interface UnilateralExerciseDao {
     @Upsert
-    suspend fun upsert(exercise: BilateralExercise)
+    suspend fun upsert(exercise: UnilateralExercise)
 
     @Query("SELECT * FROM unilateralexercise WHERE date = :date")
     suspend fun getExerciseByDate(date: LocalDate): List<UnilateralExercise>

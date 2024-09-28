@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +35,8 @@ import com.example.fitregisterapp.ui.FileName
 import com.example.fitregisterapp.ui.AppDatabase
 import com.example.fitregisterapp.ui.BilateralExercise
 import com.example.fitregisterapp.ui.BilateralExerciseSaver
+import com.example.fitregisterapp.ui.UnilateralExercise
+import com.example.fitregisterapp.ui.UnilateralExerciseSaver
 import com.example.fitregisterapp.ui.components.AutoCompleteInput
 import com.example.fitregisterapp.ui.components.SimpleInput
 import com.example.fitregisterapp.ui.components.UnilateralInput
@@ -70,12 +73,16 @@ fun App(paddingValues: PaddingValues) {
     var isUnilateral by remember { mutableStateOf(false) }
     var unilateralReps by remember { mutableStateOf(Pair(0, 0)) }
     var normalReps by remember { mutableStateOf(0) }
+    val canSave by remember(exerciseName, variation) {
+        derivedStateOf { exerciseName.isNotEmpty() && variation.isNotEmpty() }
+    }
     val inputModifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 16.dp)
     val database = AppDatabase.getDatabase(LocalContext.current)
     val fileNameTable = database.fileNameDao();
     val bilateralExerciseSaver = BilateralExerciseSaver(database.bilateralExerciseDao())
+    val unilateralExerciseSaver = UnilateralExerciseSaver(database.unilateralExerciseDao())
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -91,7 +98,8 @@ fun App(paddingValues: PaddingValues) {
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
-            .padding(16.dp)) {
+            .padding(16.dp)
+    ) {
         Button(
             onClick = { showDirectoryPicker = true },
             modifier = Modifier
@@ -128,7 +136,32 @@ fun App(paddingValues: PaddingValues) {
         }
         Button(
             onClick = {
-                CoroutineScope(Dispatchers.IO).launch { 
+                CoroutineScope(Dispatchers.IO).launch {
+                    val testExercise: UnilateralExercise? = database
+                        .unilateralExerciseDao()
+                        .getAll()
+                        .getOrNull(0)
+
+                    val message = testExercise?.let { "${it.name} ${it.variation} derecha:${it.rightReps} izquierda:${it.leftReps}" }
+                        ?: "No hay ejercicios registrados"
+
+                    withContext(Dispatchers.Main) {
+                        Toast
+                            .makeText(context, message, Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
+            },
+            modifier = Modifier
+                .padding(top = 16.dp, bottom = 24.dp)
+                .fillMaxWidth(1f)
+                .align(Alignment.CenterHorizontally)
+        ) {
+            Text("Mostrar último dato guardado Unilateral")
+        }
+        Button(
+            onClick = {
+                CoroutineScope(Dispatchers.IO).launch {
                     database
                         .bilateralExerciseDao()
                         .deleteExerciseByDate(LocalDate.now())
@@ -138,7 +171,7 @@ fun App(paddingValues: PaddingValues) {
                             .show()
                     }
                 }
-            }, 
+            },
             modifier = Modifier
                 .padding(top = 16.dp, bottom = 24.dp)
                 .fillMaxWidth(1f)
@@ -147,7 +180,7 @@ fun App(paddingValues: PaddingValues) {
             Text("Eliminar datos de hoy")
         }
 
-        if(showDirectoryPicker) {
+        if (showDirectoryPicker) {
             DirectoryPicker { files ->
                 fileNames = files
                     ?.mapNotNull { file -> file.name?.replace(".md", "") }
@@ -165,12 +198,13 @@ fun App(paddingValues: PaddingValues) {
         AutoCompleteInput(
             datalist = fileNames,
             onChange = { exerciseName = it },
-            modifier = inputModifier)
+            modifier = inputModifier
+        )
         Spacer(modifier = Modifier.size(15.dp))
         OutlinedTextField(
-            value = variation ,
-            onValueChange = { variation = it},
-            label = { Text("Variación")},
+            value = variation,
+            onValueChange = { variation = it },
+            label = { Text("Variación") },
             modifier = inputModifier,
             colors = ExposedDropdownMenuDefaults.textFieldColors()
         )
@@ -182,30 +216,62 @@ fun App(paddingValues: PaddingValues) {
             Text("Unilateral", modifier = Modifier.align(Alignment.CenterVertically))
         }
         Spacer(modifier = Modifier.size(15.dp))
-        if(exerciseName.isNotEmpty() && variation.isNotEmpty()) {
-            if(isUnilateral) UnilateralInput { unilateralReps = it }
+        if (canSave) {
+            if (isUnilateral) UnilateralInput { unilateralReps = it }
             else SimpleInput { normalReps = it }
         }
 
-       if(!isUnilateral) {
-           Button(
-               onClick = {
-                   CoroutineScope(Dispatchers.IO).launch {
-                       bilateralExerciseSaver.save(exerciseName, variation, normalReps)
-                       withContext(Dispatchers.Main) {
-                           exerciseName = ""
-                           variation = ""
-                           normalReps = 0
-                           Toast
-                               .makeText(context, "Ejercicio guardado correctamente", Toast.LENGTH_SHORT)
-                               .show()
-                       }
-                   }
-               }
-           ) {
-               Text("Guardar Ejercicio")
-           }
-       }
+
+
+        if (!isUnilateral) {
+            Button(
+                onClick = {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        bilateralExerciseSaver.save(exerciseName, variation, normalReps)
+                        withContext(Dispatchers.Main) {
+                            exerciseName = ""
+                            variation = ""
+                            normalReps = 0
+                            Toast
+                                .makeText(
+                                    context,
+                                    "Ejercicio guardado correctamente",
+                                    Toast.LENGTH_SHORT
+                                )
+                                .show()
+                        }
+                    }
+                }
+            ) {
+                Text("Guardar Ejercicio")
+            }
+        } else {
+            Button(onClick = {
+                CoroutineScope(Dispatchers.IO).launch {
+                    unilateralExerciseSaver
+                        .save(
+                            name = exerciseName,
+                            variation = variation,
+                            rightReps = unilateralReps.first,
+                            leftReps =  unilateralReps.second
+                        )
+                    withContext(Dispatchers.Main) {
+                        exerciseName = ""
+                        variation = ""
+                        unilateralReps = 0 to 0
+                        Toast.makeText(
+                            context,
+                            "Ejercicio Unilateral guardado correctamente",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+            }) {
+                Text("Guardar Ejercicio")
+            }
+
+        }
 
     }
 }
