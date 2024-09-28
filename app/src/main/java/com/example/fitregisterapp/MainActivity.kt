@@ -142,8 +142,9 @@ fun App(paddingValues: PaddingValues) {
                         .getAll()
                         .getOrNull(0)
 
-                    val message = testExercise?.let { "${it.name} ${it.variation} derecha:${it.rightReps} izquierda:${it.leftReps}" }
-                        ?: "No hay ejercicios registrados"
+                    val message =
+                        testExercise?.let { "${it.name} ${it.variation} derecha:${it.rightReps} izquierda:${it.leftReps}" }
+                            ?: "No hay ejercicios registrados"
 
                     withContext(Dispatchers.Main) {
                         Toast
@@ -225,6 +226,10 @@ fun App(paddingValues: PaddingValues) {
 
         if (!isUnilateral) {
             Button(
+                modifier = Modifier
+                    .padding(top = 16.dp, bottom = 24.dp)
+                    .fillMaxWidth(1f)
+                    .align(Alignment.CenterHorizontally),
                 onClick = {
                     CoroutineScope(Dispatchers.IO).launch {
                         bilateralExerciseSaver.save(exerciseName, variation, normalReps)
@@ -246,28 +251,33 @@ fun App(paddingValues: PaddingValues) {
                 Text("Guardar Ejercicio")
             }
         } else {
-            Button(onClick = {
-                CoroutineScope(Dispatchers.IO).launch {
-                    unilateralExerciseSaver
-                        .save(
-                            name = exerciseName,
-                            variation = variation,
-                            rightReps = unilateralReps.first,
-                            leftReps =  unilateralReps.second
-                        )
-                    withContext(Dispatchers.Main) {
-                        exerciseName = ""
-                        variation = ""
-                        unilateralReps = 0 to 0
-                        Toast.makeText(
-                            context,
-                            "Ejercicio Unilateral guardado correctamente",
-                            Toast.LENGTH_SHORT
-                        ).show()
+            Button(
+                onClick = {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        unilateralExerciseSaver
+                            .save(
+                                name = exerciseName,
+                                variation = variation,
+                                rightReps = unilateralReps.first,
+                                leftReps = unilateralReps.second
+                            )
+                        withContext(Dispatchers.Main) {
+                            exerciseName = ""
+                            variation = ""
+                            unilateralReps = 0 to 0
+                            Toast.makeText(
+                                context,
+                                "Ejercicio Unilateral guardado correctamente",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
-                }
 
-            }) {
+                }, modifier = Modifier
+                    .padding(top = 16.dp, bottom = 24.dp)
+                    .fillMaxWidth(1f)
+                    .align(Alignment.CenterHorizontally)
+            ) {
                 Text("Guardar Ejercicio")
             }
 
