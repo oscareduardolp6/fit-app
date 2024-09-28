@@ -1,10 +1,16 @@
 package com.example.fitregisterapp
 
+import android.content.Context
+import android.net.Uri
 import android.os.Bundle
+import android.provider.DocumentsContract
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -285,6 +291,78 @@ fun App(paddingValues: PaddingValues) {
             }
 
         }
+        SaveFileToUserSelectedFolder()
+    }
+}
+
+@Composable
+fun SaveFileToUserSelectedFolder() {
+    val context = LocalContext.current
+    var selectedFolderUri by remember { mutableStateOf<Uri?>(null) }
+    val directoryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri: Uri? ->
+        selectedFolderUri = uri
+    }
+
+
+    Button(onClick = { directoryLauncher.launch(null) }) {
+        Text("Seleccionar carpeta")
+    }
+
+    if (selectedFolderUri != null) {
+        Button(onClick = {
+            val fileName = "example.md"
+            val content =
+                """---
+tags: 
+    - prueba
+---
+# Título
+
+[Variacion:: Alguna]
+"""
+            saveFileToSelectedFolder(context, selectedFolderUri!!, fileName, content)
+
+        }) {
+            Text("Guardar archivo en la carpeta seleccionada")
+        }
+    }
+
+}
+
+fun saveFileToSelectedFolder(
+    context: Context,
+    folderUri: Uri,
+    fileName: String,
+    fileContent: String
+) {
+    val resolver = context.contentResolver
+
+    val documentUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, DocumentsContract.getTreeDocumentId(folderUri))
+    Log.d("Uri", "saveFileToSelectedFolder: $documentUri")
+
+    val fileUri = DocumentsContract.createDocument(
+        resolver,
+        documentUri,
+        "text/markdown",
+        fileName
+    )
+
+    fileUri?.let { uri ->
+        resolver.openOutputStream(uri)?.use { outputStream ->
+            outputStream.write(fileContent.toByteArray())
+        }
 
     }
 }
+
+
+
+
+
+
+
+
+
+
