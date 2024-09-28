@@ -5,7 +5,7 @@ import java.time.LocalDate
 class BilateralExerciseSaver(private val dao: BilateralExerciseDao) {
     suspend fun save(name: String, variation: String, reps: Int) {
         val exercise = dao.findExercise(name, variation)
-            ?: BilateralExercise(name = name, variation = variation, reps = emptyList())
+            ?: BilateralExercise(name = name, variation = variation.trim(), reps = emptyList())
         val updatedExercise = exercise.copy(reps = exercise.reps + reps)
         dao.upsertBilateralExercise(updatedExercise)
     }
@@ -16,7 +16,7 @@ class UnilateralExerciseSaver(private val dao: UnilateralExerciseDao) {
         val exercise = dao.findExercise(name, variation)
             ?: UnilateralExercise(
                 name = name,
-                variation = variation,
+                variation = variation.trim(),
                 date = LocalDate.now(),
                 leftReps = emptyList(),
                 rightReps = emptyList()

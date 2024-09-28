@@ -165,7 +165,10 @@ fun App(paddingValues: PaddingValues) {
                 CoroutineScope(Dispatchers.IO).launch {
                     database
                         .bilateralExerciseDao()
-                        .deleteExerciseByDate(LocalDate.now())
+                        .deleteAll()
+                    database
+                        .unilateralExerciseDao()
+                        .deleteAll()
                     withContext(Dispatchers.Main) {
                         Toast
                             .makeText(context, "Datos de hoy eliminados", Toast.LENGTH_SHORT)
@@ -178,7 +181,7 @@ fun App(paddingValues: PaddingValues) {
                 .fillMaxWidth(1f)
                 .align(Alignment.CenterHorizontally)
         ) {
-            Text("Eliminar datos de hoy")
+            Text("Eliminar todo")
         }
 
         if (showDirectoryPicker) {

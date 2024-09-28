@@ -47,6 +47,9 @@ interface BilateralExerciseDao {
     @Query("SELECT * FROM bilateralexercise WHERE date = :date AND variation = :variation AND name = :name")
     suspend fun findExercise(name: String, variation: String, date: LocalDate = LocalDate.now()): BilateralExercise?
 
+    @Query("DELETE FROM bilateralexercise")
+    suspend fun deleteAll()
+
 }
 
 @Dao
@@ -65,6 +68,9 @@ interface UnilateralExerciseDao {
 
     @Query("SELECT * FROM unilateralexercise WHERE date = :date AND variation = :variation AND name = :name")
     suspend fun findExercise(name: String, variation: String, date: LocalDate = LocalDate.now()): UnilateralExercise?
+
+    @Query("DELETE FROM unilateralexercise")
+    suspend fun deleteAll()
 }
 
 class Converters {
