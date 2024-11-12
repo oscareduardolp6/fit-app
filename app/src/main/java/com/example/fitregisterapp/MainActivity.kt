@@ -37,6 +37,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.fitregisterapp.exercise.infra.FileInfo
+import com.example.fitregisterapp.exercise.infra.saveFileToSelectedFolder
 import com.example.fitregisterapp.ui.FileName
 import com.example.fitregisterapp.ui.AppDatabase
 import com.example.fitregisterapp.ui.BilateralExercise
@@ -327,7 +329,14 @@ fun SaveBilateralFileToUserSelectedFolder(exerciseDao: BilateralExerciseDao) {
                         content = bilateralExerciseToMarkdown(exercise)
                     )}
                     .forEach{ mdFile ->
-                        saveFileToSelectedFolder(context, selectedFolderUri!!, mdFile.name, mdFile.content)
+                        saveFileToSelectedFolder(
+                            context,
+                            fileInfo = FileInfo(
+                                name = mdFile.name,
+                                content = mdFile.content,
+                                folderUri = selectedFolderUri!!
+                            )
+                        )
                         withContext(Dispatchers.Main) {
                             Toast
                                 .makeText(context, "Creado el archivo: ${mdFile.name}", Toast.LENGTH_SHORT)
@@ -386,31 +395,27 @@ fun trailingZero(value: Int): String = if(value <= 9) "0$value" else value.toStr
 
 
 
-fun saveFileToSelectedFolder(
-    context: Context,
-    folderUri: Uri,
-    fileName: String,
-    fileContent: String
-) {
-    val resolver = context.contentResolver
-
-    val documentUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, DocumentsContract.getTreeDocumentId(folderUri))
-    Log.d("Uri", "saveFileToSelectedFolder: $documentUri")
-
-    val fileUri = DocumentsContract.createDocument(
-        resolver,
-        documentUri,
-        "text/markdown",
-        fileName
-    )
-
-    fileUri?.let { uri ->
-        resolver.openOutputStream(uri)?.use { outputStream ->
-            outputStream.write(fileContent.toByteArray())
-        }
-
-    }
-}
+//fun saveFileToSelectedFolder(
+//    context: Context,
+//    folderUri: Uri,
+//    fileName: String,
+//    fileContent: String
+//) {
+//    val resolver = context.contentResolver
+//    val documentUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, DocumentsContract.getTreeDocumentId(folderUri))
+//    val fileUri = DocumentsContract.createDocument(
+//        resolver,
+//        documentUri,
+//        "text/markdown",
+//        fileName
+//    )
+//
+//    fileUri?.let { uri ->
+//        resolver.openOutputStream(uri)?.use { outputStream ->
+//            outputStream.write(fileContent.toByteArray())
+//        }
+//    }
+//}
 
 
 
