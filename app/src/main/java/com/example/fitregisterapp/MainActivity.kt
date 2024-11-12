@@ -1,10 +1,7 @@
 package com.example.fitregisterapp
 
-import android.content.Context
 import android.net.Uri
 import android.os.Bundle
-import android.provider.DocumentsContract
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -39,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.fitregisterapp.exercise.infra.FileInfo
 import com.example.fitregisterapp.exercise.infra.saveFileToSelectedFolder
+import com.example.fitregisterapp.shared.domain.toMXFormat
 import com.example.fitregisterapp.ui.FileName
 import com.example.fitregisterapp.ui.AppDatabase
 import com.example.fitregisterapp.ui.BilateralExercise
@@ -56,6 +54,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class MainActivity : ComponentActivity() {
 
@@ -353,7 +352,7 @@ fun SaveBilateralFileToUserSelectedFolder(exerciseDao: BilateralExerciseDao) {
 
 data class MdFile(val name: String, val content: String)
 
-fun bilateralExerciseToFileName(exercise: BilateralExercise): String = "${exercise.name} ${exercise.variation} ${formatDateToMDFile(exercise.date)}.md"
+fun bilateralExerciseToFileName(exercise: BilateralExercise): String = "${exercise.name} ${exercise.variation} ${exercise.date.toMXFormat()}.md"
 
 fun bilateralExerciseToMarkdown(exercise: BilateralExercise): String {
     val setsContent = exercise.reps
@@ -367,29 +366,8 @@ fun bilateralExerciseToMarkdown(exercise: BilateralExercise): String {
 tags: 
     - bitacora_ejercicio
 ---
-# 💪[[${exercise.name}]] del [[${formatDateToMDFile(exercise.date)}]] 
+# 💪[[${exercise.name}]] del [[${exercise.date.toMXFormat()}]] 
 [Variacion:: ${exercise.variation}]
 $setsContent
 """.trimIndent()
 }
-
-fun formatDateToMDFile(date: LocalDate): String {
-    val day = trailingZero(date.dayOfMonth)
-    val month = trailingZero(date.month.value)
-    val year = date.year
-    val parts = listOf(day, month, year)
-
-    return parts.joinToString("-")
-}
-
-fun trailingZero(value: Int): String = if(value <= 9) "0$value" else value.toString()
-
-
-
-
-
-
-
-
-
-
