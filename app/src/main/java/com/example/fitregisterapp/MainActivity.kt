@@ -395,30 +395,6 @@ fun trailingZero(value: Int): String = if(value <= 9) "0$value" else value.toStr
 
 
 
-//fun saveFileToSelectedFolder(
-//    context: Context,
-//    folderUri: Uri,
-//    fileName: String,
-//    fileContent: String
-//) {
-//    val resolver = context.contentResolver
-//    val documentUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, DocumentsContract.getTreeDocumentId(folderUri))
-//    val fileUri = DocumentsContract.createDocument(
-//        resolver,
-//        documentUri,
-//        "text/markdown",
-//        fileName
-//    )
-//
-//    fileUri?.let { uri ->
-//        resolver.openOutputStream(uri)?.use { outputStream ->
-//            outputStream.write(fileContent.toByteArray())
-//        }
-//    }
-//}
-
-
-
 
 
 
