@@ -382,15 +382,6 @@ fun formatDateToMDFile(date: LocalDate): String {
     return parts.joinToString("-")
 }
 
-fun formatDateOnly(date: LocalDate): String {
-    val day = trailingZero(date.dayOfMonth)
-    val month = trailingZero(date.month.value)
-    val year = date.year
-    val parts = listOf(day, month, year)
-
-    return parts.joinToString("_")
-}
-
 fun trailingZero(value: Int): String = if(value <= 9) "0$value" else value.toString()
 
 
