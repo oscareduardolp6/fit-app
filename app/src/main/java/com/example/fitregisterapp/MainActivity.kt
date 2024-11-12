@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.example.fitregisterapp.ui.FileName
 import com.example.fitregisterapp.ui.AppDatabase
 import com.example.fitregisterapp.ui.BilateralExercise
+import com.example.fitregisterapp.ui.BilateralExerciseDao
 import com.example.fitregisterapp.ui.BilateralExerciseSaver
 import com.example.fitregisterapp.ui.UnilateralExercise
 import com.example.fitregisterapp.ui.UnilateralExerciseSaver
@@ -291,12 +292,12 @@ fun App(paddingValues: PaddingValues) {
             }
 
         }
-        SaveFileToUserSelectedFolder()
+        SaveBilateralFileToUserSelectedFolder(database.bilateralExerciseDao())
     }
 }
 
 @Composable
-fun SaveFileToUserSelectedFolder() {
+fun SaveBilateralFileToUserSelectedFolder(exerciseDao: BilateralExerciseDao) {
     val context = LocalContext.current
     var selectedFolderUri by remember { mutableStateOf<Uri?>(null) }
     val directoryLauncher = rememberLauncherForActivityResult(
@@ -312,24 +313,78 @@ fun SaveFileToUserSelectedFolder() {
 
     if (selectedFolderUri != null) {
         Button(onClick = {
-            val fileName = "example.md"
-            val content =
-                """---
-tags: 
-    - prueba
----
-# Título
-
-[Variacion:: Alguna]
-"""
-            saveFileToSelectedFolder(context, selectedFolderUri!!, fileName, content)
-
+            CoroutineScope(Dispatchers.IO).launch {
+                val exercises = exerciseDao.getExercisesByDate(LocalDate.now())
+                if(exercises.isEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "No hay ejercicios guardados hoy", Toast.LENGTH_SHORT).show()
+                    }
+                    return@launch
+                }
+                exercises
+                    .map { exercise -> MdFile(
+                        name = bilateralExerciseToFileName(exercise),
+                        content = bilateralExerciseToMarkdown(exercise)
+                    )}
+                    .forEach{ mdFile ->
+                        saveFileToSelectedFolder(context, selectedFolderUri!!, mdFile.name, mdFile.content)
+                        withContext(Dispatchers.Main) {
+                            Toast
+                                .makeText(context, "Creado el archivo: ${mdFile.name}", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    }
+            }
         }) {
             Text("Guardar archivo en la carpeta seleccionada")
         }
     }
 
 }
+
+data class MdFile(val name: String, val content: String)
+
+fun bilateralExerciseToFileName(exercise: BilateralExercise): String = "${exercise.name} ${exercise.variation} ${formatDateToMDFile(exercise.date)}.md"
+
+fun bilateralExerciseToMarkdown(exercise: BilateralExercise): String {
+    val setsContent = exercise.reps
+        .withIndex()
+        .map { (index, value) ->
+            "[Serie_${index + 1}:: $value]"
+        }
+        .joinToString("\n")
+    return """
+---
+tags: 
+    - bitacora_ejercicio
+---
+# 💪[[${exercise.name}]] del [[${formatDateToMDFile(exercise.date)}]] 
+[Variacion:: ${exercise.variation}]
+$setsContent
+""".trimIndent()
+}
+
+fun formatDateToMDFile(date: LocalDate): String {
+    val day = trailingZero(date.dayOfMonth)
+    val month = trailingZero(date.month.value)
+    val year = date.year
+    val parts = listOf(day, month, year)
+
+    return parts.joinToString("-")
+}
+
+fun formatDateOnly(date: LocalDate): String {
+    val day = trailingZero(date.dayOfMonth)
+    val month = trailingZero(date.month.value)
+    val year = date.year
+    val parts = listOf(day, month, year)
+
+    return parts.joinToString("_")
+}
+
+fun trailingZero(value: Int): String = if(value <= 9) "0$value" else value.toString()
+
+
 
 fun saveFileToSelectedFolder(
     context: Context,
