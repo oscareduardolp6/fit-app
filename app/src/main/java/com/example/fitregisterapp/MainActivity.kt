@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.fitregisterapp.exercise.domain.bilateralExerciseToMd
 import com.example.fitregisterapp.exercise.infra.FileInfo
 import com.example.fitregisterapp.exercise.infra.saveFileToSelectedFolder
 import com.example.fitregisterapp.shared.domain.toMXFormat
@@ -325,7 +326,7 @@ fun SaveBilateralFileToUserSelectedFolder(exerciseDao: BilateralExerciseDao) {
                 exercises
                     .map { exercise -> MdFile(
                         name = bilateralExerciseToFileName(exercise),
-                        content = bilateralExerciseToMarkdown(exercise)
+                        content = bilateralExerciseToMd(exercise)
                     )}
                     .forEach{ mdFile ->
                         saveFileToSelectedFolder(
@@ -354,20 +355,3 @@ data class MdFile(val name: String, val content: String)
 
 fun bilateralExerciseToFileName(exercise: BilateralExercise): String = "${exercise.name} ${exercise.variation} ${exercise.date.toMXFormat()}.md"
 
-fun bilateralExerciseToMarkdown(exercise: BilateralExercise): String {
-    val setsContent = exercise.reps
-        .withIndex()
-        .map { (index, value) ->
-            "[Serie_${index + 1}:: $value]"
-        }
-        .joinToString("\n")
-    return """
----
-tags: 
-    - bitacora_ejercicio
----
-# 💪[[${exercise.name}]] del [[${exercise.date.toMXFormat()}]] 
-[Variacion:: ${exercise.variation}]
-$setsContent
-""".trimIndent()
-}
