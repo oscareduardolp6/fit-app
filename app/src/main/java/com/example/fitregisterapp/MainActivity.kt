@@ -34,18 +34,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.fitregisterapp.exercise.app.MdFileToSelectedFolderSaver
 import com.example.fitregisterapp.exercise.app.bilateralExerciseToMd
+import com.example.fitregisterapp.exercise.domain.BilateralExerciseRepository
+import com.example.fitregisterapp.exercise.domain.MdFile
+import com.example.fitregisterapp.exercise.domain.Notifier
 import com.example.fitregisterapp.exercise.infra.FileInfo
+import com.example.fitregisterapp.exercise.infra.RoomExerciseRepository
 import com.example.fitregisterapp.exercise.infra.saveFileToSelectedFolder
 import com.example.fitregisterapp.shared.domain.toMXFormat
-import com.example.fitregisterapp.ui.FileName
 import com.example.fitregisterapp.ui.AppDatabase
 import com.example.fitregisterapp.ui.BilateralExercise
 import com.example.fitregisterapp.ui.BilateralExerciseDao
 import com.example.fitregisterapp.ui.BilateralExerciseSaver
+import com.example.fitregisterapp.ui.FileName
 import com.example.fitregisterapp.ui.UnilateralExercise
 import com.example.fitregisterapp.ui.UnilateralExerciseSaver
 import com.example.fitregisterapp.ui.components.AutoCompleteInput
+import com.example.fitregisterapp.ui.components.SaveFileInFolderButton
 import com.example.fitregisterapp.ui.components.SimpleInput
 import com.example.fitregisterapp.ui.components.UnilateralInput
 import com.example.fitregisterapp.ui.share.DirectoryPicker
@@ -92,6 +98,7 @@ fun App(paddingValues: PaddingValues) {
     val bilateralExerciseSaver = BilateralExerciseSaver(database.bilateralExerciseDao())
     val unilateralExerciseSaver = UnilateralExerciseSaver(database.unilateralExerciseDao())
     val context = LocalContext.current
+    val bilateralExerciseRepository = RoomExerciseRepository(database)
 
     LaunchedEffect(Unit) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -293,13 +300,12 @@ fun App(paddingValues: PaddingValues) {
             }
 
         }
-        SaveBilateralFileToUserSelectedFolder(database.bilateralExerciseDao())
+        SaveBilateralFileToUserSelectedFolder()
     }
 }
 
 @Composable
-fun SaveBilateralFileToUserSelectedFolder(exerciseDao: BilateralExerciseDao) {
-    val context = LocalContext.current
+fun SaveBilateralFileToUserSelectedFolder(bilateralExerciseRepository: BilateralExerciseRepository) {
     var selectedFolderUri by remember { mutableStateOf<Uri?>(null) }
     val directoryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
@@ -313,44 +319,9 @@ fun SaveBilateralFileToUserSelectedFolder(exerciseDao: BilateralExerciseDao) {
     }
 
     if (selectedFolderUri != null) {
-        Button(onClick = {
-            CoroutineScope(Dispatchers.IO).launch {
-                val exercises = exerciseDao.getExercisesByDate(LocalDate.now())
-                if(exercises.isEmpty()) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "No hay ejercicios guardados hoy", Toast.LENGTH_SHORT).show()
-                    }
-                    return@launch
-                }
-                exercises
-                    .map { exercise -> MdFile(
-                        name = bilateralExerciseToFileName(exercise),
-                        content = bilateralExerciseToMd(exercise)
-                    )}
-                    .forEach{ mdFile ->
-                        saveFileToSelectedFolder(
-                            context,
-                            fileInfo = FileInfo(
-                                name = mdFile.name,
-                                content = mdFile.content,
-                                folderUri = selectedFolderUri!!
-                            )
-                        )
-                        withContext(Dispatchers.Main) {
-                            Toast
-                                .makeText(context, "Creado el archivo: ${mdFile.name}", Toast.LENGTH_SHORT)
-                                .show()
-                        }
-                    }
-            }
-        }) {
-            Text("Guardar archivo en la carpeta seleccionada")
-        }
+        SaveFileInFolderButton(bilateralExerciseRepository, selectedFolderUri!!)
     }
-
 }
-
-data class MdFile(val name: String, val content: String)
 
 fun bilateralExerciseToFileName(exercise: BilateralExercise): String = "${exercise.name} ${exercise.variation} ${exercise.date.toMXFormat()}.md"
 
