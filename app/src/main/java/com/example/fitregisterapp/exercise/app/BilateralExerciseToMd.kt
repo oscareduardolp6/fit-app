@@ -1,4 +1,4 @@
-package com.example.fitregisterapp.exercise.domain
+package com.example.fitregisterapp.exercise.app
 
 import com.example.fitregisterapp.shared.domain.toMXFormat
 import com.example.fitregisterapp.ui.BilateralExercise

@@ -34,7 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.example.fitregisterapp.exercise.domain.bilateralExerciseToMd
+import com.example.fitregisterapp.exercise.app.bilateralExerciseToMd
 import com.example.fitregisterapp.exercise.infra.FileInfo
 import com.example.fitregisterapp.exercise.infra.saveFileToSelectedFolder
 import com.example.fitregisterapp.shared.domain.toMXFormat
@@ -55,7 +55,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 class MainActivity : ComponentActivity() {
 
