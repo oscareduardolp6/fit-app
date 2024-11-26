@@ -300,7 +300,7 @@ fun App(paddingValues: PaddingValues) {
             }
 
         }
-        SaveBilateralFileToUserSelectedFolder()
+        SaveBilateralFileToUserSelectedFolder(bilateralExerciseRepository)
     }
 }
 
