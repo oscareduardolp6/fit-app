@@ -73,8 +73,6 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(paddingValues: PaddingValues) {
-//    var fileNames by remember { mutableStateOf(emptyList<String>()) }
-
     var exerciseName by remember { mutableStateOf("") }
     var showDirectoryPicker by remember { mutableStateOf(false) }
     var variation by remember { mutableStateOf("") }
@@ -88,7 +86,6 @@ fun App(paddingValues: PaddingValues) {
         .fillMaxWidth()
         .padding(horizontal = 16.dp)
     val database = AppDatabase.getDatabase(LocalContext.current)
-    val fileNameTable = database.fileNameDao();
     val bilateralExerciseSaver = BilateralExerciseSaver(database.bilateralExerciseDao())
     val unilateralExerciseSaver = UnilateralExerciseSaver(database.unilateralExerciseDao())
     val context = LocalContext.current
@@ -96,15 +93,6 @@ fun App(paddingValues: PaddingValues) {
     val fileNamesViewModel: FileNamesViewModel = viewModel(
         factory = FileNamesViewModelFactory(database.fileNameDao())
     )
-
-//    LaunchedEffect(Unit) {
-//        CoroutineScope(Dispatchers.IO).launch {
-//            val savedFileNames = fileNameTable.getAllFileNames()
-//            withContext(Dispatchers.Main) {
-//                fileNames = savedFileNames.map { it.name }
-//            }
-//        }
-//    }
 
     Column(
         modifier = Modifier
