@@ -24,7 +24,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,20 +33,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.example.fitregisterapp.exercise.app.MdFileToSelectedFolderSaver
-import com.example.fitregisterapp.exercise.app.bilateralExerciseToMd
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitregisterapp.exercise.domain.BilateralExerciseRepository
-import com.example.fitregisterapp.exercise.domain.MdFile
-import com.example.fitregisterapp.exercise.domain.Notifier
-import com.example.fitregisterapp.exercise.infra.FileInfo
 import com.example.fitregisterapp.exercise.infra.RoomExerciseRepository
-import com.example.fitregisterapp.exercise.infra.saveFileToSelectedFolder
 import com.example.fitregisterapp.shared.domain.toMXFormat
 import com.example.fitregisterapp.ui.AppDatabase
 import com.example.fitregisterapp.ui.BilateralExercise
-import com.example.fitregisterapp.ui.BilateralExerciseDao
 import com.example.fitregisterapp.ui.BilateralExerciseSaver
-import com.example.fitregisterapp.ui.FileName
 import com.example.fitregisterapp.ui.UnilateralExercise
 import com.example.fitregisterapp.ui.UnilateralExerciseSaver
 import com.example.fitregisterapp.ui.components.AutoCompleteInput
@@ -56,11 +48,12 @@ import com.example.fitregisterapp.ui.components.SimpleInput
 import com.example.fitregisterapp.ui.components.UnilateralInput
 import com.example.fitregisterapp.ui.share.DirectoryPicker
 import com.example.fitregisterapp.ui.theme.FitRegisterAppTheme
+import com.example.fitregisterapp.ui.viewModels.FileNamesViewModel
+import com.example.fitregisterapp.ui.viewModels.FileNamesViewModelFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
 
@@ -80,7 +73,8 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(paddingValues: PaddingValues) {
-    var fileNames by remember { mutableStateOf(emptyList<String>()) }
+//    var fileNames by remember { mutableStateOf(emptyList<String>()) }
+
     var exerciseName by remember { mutableStateOf("") }
     var showDirectoryPicker by remember { mutableStateOf(false) }
     var variation by remember { mutableStateOf("") }
@@ -99,15 +93,18 @@ fun App(paddingValues: PaddingValues) {
     val unilateralExerciseSaver = UnilateralExerciseSaver(database.unilateralExerciseDao())
     val context = LocalContext.current
     val bilateralExerciseRepository = RoomExerciseRepository(database)
+    val fileNamesViewModel: FileNamesViewModel = viewModel(
+        factory = FileNamesViewModelFactory(database.fileNameDao())
+    )
 
-    LaunchedEffect(Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val savedFileNames = fileNameTable.getAllFileNames()
-            withContext(Dispatchers.Main) {
-                fileNames = savedFileNames.map { it.name }
-            }
-        }
-    }
+//    LaunchedEffect(Unit) {
+//        CoroutineScope(Dispatchers.IO).launch {
+//            val savedFileNames = fileNameTable.getAllFileNames()
+//            withContext(Dispatchers.Main) {
+//                fileNames = savedFileNames.map { it.name }
+//            }
+//        }
+//    }
 
     Column(
         modifier = Modifier
@@ -201,21 +198,16 @@ fun App(paddingValues: PaddingValues) {
 
         if (showDirectoryPicker) {
             DirectoryPicker { files ->
-                fileNames = files
+                val newFileNames = files
                     ?.mapNotNull { file -> file.name?.replace(".md", "") }
                     ?.ifEmpty { listOf("No se ha cargado la carpeta de ejercicios") }
                     ?: listOf("No se ha cargado la carpeta de ejercicios")
-                CoroutineScope(Dispatchers.IO).launch {
-                    fileNameTable.deleteAll()
-                    fileNames
-                        .map { FileName(it) }
-                        .forEach { fileNameTable.upsertFileName(it) }
-                }
+                fileNamesViewModel.saveFileNames(newFileNames)
                 showDirectoryPicker = false
             }
         }
         AutoCompleteInput(
-            datalist = fileNames,
+            datalist = fileNamesViewModel.fileNames.value,
             onChange = { exerciseName = it },
             modifier = inputModifier
         )
