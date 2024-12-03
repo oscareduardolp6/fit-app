@@ -35,7 +35,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitregisterapp.exercise.domain.BilateralExerciseRepository
+import com.example.fitregisterapp.exercise.domain.UnilateralExerciseRepository
 import com.example.fitregisterapp.exercise.infra.RoomExerciseRepository
+import com.example.fitregisterapp.exercise.infra.RoomUnilateralExerciseRepository
 import com.example.fitregisterapp.shared.domain.toMXFormat
 import com.example.fitregisterapp.ui.AppDatabase
 import com.example.fitregisterapp.ui.BilateralExercise
@@ -90,6 +92,7 @@ fun App(paddingValues: PaddingValues) {
     val unilateralExerciseSaver = UnilateralExerciseSaver(database.unilateralExerciseDao())
     val context = LocalContext.current
     val bilateralExerciseRepository = RoomExerciseRepository(database)
+    val unilateralExerciseRepository = RoomUnilateralExerciseRepository(database)
     val fileNamesViewModel: FileNamesViewModel = viewModel(
         factory = FileNamesViewModelFactory(database.fileNameDao())
     )
@@ -280,12 +283,15 @@ fun App(paddingValues: PaddingValues) {
             }
 
         }
-        SaveBilateralFileToUserSelectedFolder(bilateralExerciseRepository)
+        SaveBilateralFileToUserSelectedFolder(bilateralExerciseRepository, unilateralExerciseRepository)
     }
 }
 
 @Composable
-fun SaveBilateralFileToUserSelectedFolder(bilateralExerciseRepository: BilateralExerciseRepository) {
+fun SaveBilateralFileToUserSelectedFolder(
+    bilateralExerciseRepository: BilateralExerciseRepository,
+    unilateralExerciseRepository: UnilateralExerciseRepository
+) {
     var selectedFolderUri by remember { mutableStateOf<Uri?>(null) }
     val directoryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
@@ -299,9 +305,10 @@ fun SaveBilateralFileToUserSelectedFolder(bilateralExerciseRepository: Bilateral
     }
 
     if (selectedFolderUri != null) {
-        SaveFileInFolderButton(bilateralExerciseRepository, selectedFolderUri!!)
+        SaveFileInFolderButton(bilateralExerciseRepository, unilateralExerciseRepository, selectedFolderUri!!)
     }
 }
 
 fun bilateralExerciseToFileName(exercise: BilateralExercise): String = "${exercise.name} ${exercise.variation} ${exercise.date.toMXFormat()}.md"
+fun unilateralExerciseToFileName(exercise: UnilateralExercise): String = "${exercise.name} ${exercise.variation} ${exercise.date.toMXFormat()}.md"
 

@@ -9,17 +9,23 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.fitregisterapp.exercise.app.MdFileToSelectedFolderSaver
 import com.example.fitregisterapp.exercise.domain.BilateralExerciseRepository
 import com.example.fitregisterapp.exercise.domain.Notifier
+import com.example.fitregisterapp.exercise.domain.UnilateralExerciseRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 @Composable
-fun SaveFileInFolderButton(bilateralExerciseRepository: BilateralExerciseRepository, selectedFolder: Uri) {
+fun SaveFileInFolderButton(
+    bilateralExerciseRepository: BilateralExerciseRepository,
+    unilateralExerciseRepository: UnilateralExerciseRepository,
+    selectedFolder: Uri
+) {
     val context = LocalContext.current
     val notify: Notifier = { text -> Toast.makeText(context, text, Toast.LENGTH_SHORT).show() }
     val saveMdFileToSelectedFolder = MdFileToSelectedFolderSaver(
         bilateralExerciseRepository,
+        unilateralExerciseRepository,
         notify
     )
     Button(onClick = {
